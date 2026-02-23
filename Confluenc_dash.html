@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Side-of-Desk Projects — Registry & Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0F1117;
+    --surface: #181B24;
+    --surface2: #1E2130;
+    --border: #2A2E3D;
+    --border-active: #3D4259;
+    --text: #E4E6EF;
+    --text-muted: #8B8FA3;
+    --text-dim: #5D6178;
+    --accent: #4F8CFF;
+    --accent-glow: rgba(79, 140, 255, 0.15);
+    --green: #34D399;
+    --green-bg: rgba(52, 211, 153, 0.1);
+    --amber: #FBBF24;
+    --amber-bg: rgba(251, 191, 36, 0.1);
+    --red: #F87171;
+    --red-bg: rgba(248, 113, 113, 0.1);
+    --purple: #A78BFA;
+    --purple-bg: rgba(167, 139, 250, 0.1);
+    --cyan: #22D3EE;
+    --cyan-bg: rgba(34, 211, 238, 0.1);
+  }
+
+- { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+font-family: ‘DM Sans’, sans-serif;
+background: var(–bg);
+color: var(–text);
+min-height: 100vh;
+line-height: 1.5;
+}
+
+.confluence-note {
+background: var(–accent-glow);
+border: 1px solid rgba(79,140,255,0.3);
+border-radius: 8px;
+padding: 12px 20px;
+margin: 16px 24px 0;
+font-size: 13px;
+color: var(–accent);
+font-family: ‘JetBrains Mono’, monospace;
+display: flex;
+align-items: center;
+gap: 8px;
+}
+.confluence-note::before { content: “ℹ”; font-size: 16px; }
+
+header {
+padding: 28px 32px 20px;
+border-bottom: 1px solid var(–border);
+display: flex;
+justify-content: space-between;
+align-items: flex-start;
+flex-wrap: wrap;
+gap: 16px;
+}
+
+.header-left h1 {
+font-size: 26px;
+font-weight: 700;
+letter-spacing: -0.5px;
+display: flex;
+align-items: center;
+gap: 10px;
+}
+.header-left h1 .tag {
+font-size: 11px;
+font-weight: 600;
+background: var(–accent);
+color: #fff;
+padding: 3px 10px;
+border-radius: 20px;
+letter-spacing: 0.5px;
+text-transform: uppercase;
+}
+.header-left p {
+color: var(–text-muted);
+font-size: 14px;
+margin-top: 4px;
+}
+
+.header-right {
+display: flex;
+gap: 10px;
+align-items: center;
+}
+
+.btn {
+font-family: ‘DM Sans’, sans-serif;
+font-size: 13px;
+font-weight: 600;
+padding: 9px 18px;
+border-radius: 8px;
+border: 1px solid var(–border);
+background: var(–surface);
+color: var(–text);
+cursor: pointer;
+transition: all 0.2s;
+display: flex;
+align-items: center;
+gap: 6px;
+}
+.btn:hover { border-color: var(–border-active); background: var(–surface2); }
+.btn-primary { background: var(–accent); border-color: var(–accent); color: #fff; }
+.btn-primary:hover { opacity: 0.9; }
+
+/* KPI Cards */
+.kpi-strip {
+display: grid;
+grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+gap: 12px;
+padding: 20px 32px;
+}
+.kpi {
+background: var(–surface);
+border: 1px solid var(–border);
+border-radius: 10px;
+padding: 18px 20px;
+position: relative;
+overflow: hidden;
+}
+.kpi::before {
+content: ‘’;
+position: absolute;
+top: 0; left: 0;
+width: 100%; height: 3px;
+}
+.kpi:nth-child(1)::before { background: var(–accent); }
+.kpi:nth-child(2)::before { background: var(–green); }
+.kpi:nth-child(3)::before { background: var(–amber); }
+.kpi:nth-child(4)::before { background: var(–red); }
+.kpi:nth-child(5)::before { background: var(–purple); }
+.kpi:nth-child(6)::before { background: var(–cyan); }
+.kpi-label { font-size: 12px; color: var(–text-muted); text-transform: uppercase; letter-spacing: 0.8px; font-weight: 500; }
+.kpi-value { font-size: 32px; font-weight: 700; margin-top: 4px; letter-spacing: -1px; }
+
+/* Filters */
+.filters-bar {
+padding: 12px 32px;
+display: flex;
+gap: 10px;
+flex-wrap: wrap;
+align-items: center;
+border-bottom: 1px solid var(–border);
+}
+.filter-group { display: flex; align-items: center; gap: 6px; }
+.filter-label { font-size: 12px; color: var(–text-dim); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+select, .search-input {
+font-family: ‘DM Sans’, sans-serif;
+font-size: 13px;
+padding: 7px 12px;
+border-radius: 6px;
+border: 1px solid var(–border);
+background: var(–surface);
+color: var(–text);
+outline: none;
+transition: border-color 0.2s;
+}
+select:focus, .search-input:focus { border-color: var(–accent); }
+.search-input { width: 220px; }
+.search-input::placeholder { color: var(–text-dim); }
+
+/* Table */
+.table-wrap {
+padding: 0 32px 32px;
+overflow-x: auto;
+margin-top: 16px;
+}
+table {
+width: 100%;
+border-collapse: collapse;
+font-size: 13px;
+min-width: 1400px;
+}
+thead th {
+text-align: left;
+padding: 12px 14px;
+font-size: 11px;
+font-weight: 600;
+text-transform: uppercase;
+letter-spacing: 0.7px;
+color: var(–text-muted);
+border-bottom: 2px solid var(–border);
+white-space: nowrap;
+cursor: pointer;
+user-select: none;
+position: relative;
+}
+thead th:hover { color: var(–text); }
+thead th .sort-icon { margin-left: 4px; opacity: 0.4; font-size: 10px; }
+thead th.sorted .sort-icon { opacity: 1; color: var(–accent); }
+
+tbody tr {
+border-bottom: 1px solid var(–border);
+transition: background 0.15s;
+cursor: pointer;
+}
+tbody tr:hover { background: var(–surface); }
+tbody td {
+padding: 14px;
+vertical-align: top;
+}
+
+.project-name {
+font-weight: 600;
+color: var(–text);
+font-size: 14px;
+}
+.project-id {
+font-family: ‘JetBrains Mono’, monospace;
+font-size: 11px;
+color: var(–text-dim);
+margin-top: 2px;
+}
+
+.badge {
+display: inline-block;
+font-size: 11px;
+font-weight: 600;
+padding: 3px 10px;
+border-radius: 20px;
+white-space: nowrap;
+}
+.badge-green { background: var(–green-bg); color: var(–green); }
+.badge-amber { background: var(–amber-bg); color: var(–amber); }
+.badge-red { background: var(–red-bg); color: var(–red); }
+.badge-purple { background: var(–purple-bg); color: var(–purple); }
+.badge-cyan { background: var(–cyan-bg); color: var(–cyan); }
+.badge-muted { background: rgba(139,143,163,0.1); color: var(–text-muted); }
+
+.risk-dot {
+width: 10px; height: 10px;
+border-radius: 50%;
+display: inline-block;
+margin-right: 6px;
+vertical-align: middle;
+}
+.risk-low { background: var(–green); }
+.risk-medium { background: var(–amber); }
+.risk-high { background: var(–red); }
+
+.owner-cell {
+display: flex;
+flex-direction: column;
+gap: 2px;
+}
+.owner-name { font-weight: 500; }
+.owner-team { font-size: 11px; color: var(–text-muted); }
+.owner-email { font-size: 11px; color: var(–accent); text-decoration: none; }
+
+.progress-bar-wrap {
+width: 100%;
+height: 6px;
+background: var(–border);
+border-radius: 3px;
+overflow: hidden;
+margin-top: 4px;
+}
+.progress-bar-fill {
+height: 100%;
+border-radius: 3px;
+transition: width 0.4s;
+}
+.progress-label { font-size: 12px; font-weight: 600; }
+
+.detail-text { font-size: 12px; color: var(–text-muted); line-height: 1.5; max-width: 200px; }
+.tag-list { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
+.mini-tag {
+font-size: 10px;
+padding: 2px 7px;
+border-radius: 4px;
+background: var(–surface2);
+border: 1px solid var(–border);
+color: var(–text-muted);
+white-space: nowrap;
+}
+
+/* Modal */
+.modal-overlay {
+display: none;
+position: fixed;
+top: 0; left: 0;
+width: 100%; height: 100%;
+background: rgba(0,0,0,0.6);
+z-index: 100;
+justify-content: center;
+align-items: flex-start;
+padding-top: 60px;
+overflow-y: auto;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+background: var(–surface);
+border: 1px solid var(–border);
+border-radius: 14px;
+width: 700px;
+max-width: 95vw;
+padding: 32px;
+position: relative;
+margin-bottom: 60px;
+animation: slideIn 0.25s ease;
+}
+@keyframes slideIn {
+from { transform: translateY(-20px); opacity: 0; }
+to { transform: translateY(0); opacity: 1; }
+}
+.modal-close {
+position: absolute; top: 16px; right: 20px;
+background: none; border: none; color: var(–text-muted);
+font-size: 24px; cursor: pointer;
+}
+.modal h2 { font-size: 20px; margin-bottom: 24px; }
+.form-grid {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 16px;
+}
+.form-group { display: flex; flex-direction: column; gap: 5px; }
+.form-group.full { grid-column: 1 / -1; }
+.form-group label {
+font-size: 12px;
+font-weight: 600;
+text-transform: uppercase;
+letter-spacing: 0.5px;
+color: var(–text-muted);
+}
+.form-group input, .form-group select, .form-group textarea {
+font-family: ‘DM Sans’, sans-serif;
+font-size: 13px;
+padding: 10px 12px;
+border-radius: 8px;
+border: 1px solid var(–border);
+background: var(–bg);
+color: var(–text);
+outline: none;
+transition: border-color 0.2s;
+}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+border-color: var(–accent);
+}
+.form-group textarea { resize: vertical; min-height: 70px; }
+.form-actions { margin-top: 24px; display: flex; gap: 10px; justify-content: flex-end; }
+
+/* Export section */
+.export-bar {
+padding: 16px 32px;
+display: flex;
+justify-content: space-between;
+align-items: center;
+border-top: 1px solid var(–border);
+margin-top: 8px;
+}
+.export-bar .left { font-size: 12px; color: var(–text-dim); }
+.export-bar .right { display: flex; gap: 8px; }
+
+/* Responsive */
+@media (max-width: 768px) {
+header, .kpi-strip, .filters-bar, .table-wrap, .export-bar { padding-left: 16px; padding-right: 16px; }
+.kpi-strip { grid-template-columns: repeat(2, 1fr); }
+.form-grid { grid-template-columns: 1fr; }
+}
+
+/* Print / Confluence-friendly */
+@media print {
+body { background: #fff; color: #222; }
+.btn, .modal-overlay, .confluence-note, .export-bar { display: none !important; }
+.kpi { border: 1px solid #ddd; }
+.kpi::before { display: none; }
+table { font-size: 11px; min-width: auto; }
+thead th { border-bottom: 2px solid #333; color: #333; }
+tbody tr { border-bottom: 1px solid #ddd; }
+.badge { border: 1px solid currentColor; }
+}
+</style>
+
+</head>
+<body>
+
+<div class="confluence-note">
+  Confluence-ready: Copy-paste this page into Confluence using the HTML macro, or export as HTML attachment. Print-friendly styles included.
+</div>
+
+<header>
+  <div class="header-left">
+    <h1>AI Side-of-Desk Projects <span class="tag">Registry</span></h1>
+    <p>Centralised tracker for undocumented, exploratory & shadow AI initiatives across the organisation</p>
+  </div>
+  <div class="header-right">
+    <button class="btn" onclick="exportCSV()">⬇ Export CSV</button>
+    <button class="btn btn-primary" onclick="openModal()">+ Register Project</button>
+  </div>
+</header>
+
+<!-- KPI Strip -->
+
+<div class="kpi-strip" id="kpiStrip"></div>
+
+<!-- Filters -->
+
+<div class="filters-bar">
+  <div class="filter-group">
+    <span class="filter-label">Status</span>
+    <select id="filterStatus" onchange="renderTable()">
+      <option value="">All</option>
+      <option value="Active">Active</option>
+      <option value="Pilot">Pilot</option>
+      <option value="Discovery">Discovery</option>
+      <option value="On Hold">On Hold</option>
+      <option value="Decommissioned">Decommissioned</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <span class="filter-label">Risk</span>
+    <select id="filterRisk" onchange="renderTable()">
+      <option value="">All</option>
+      <option value="Low">Low</option>
+      <option value="Medium">Medium</option>
+      <option value="High">High</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <span class="filter-label">Business</span>
+    <select id="filterBusiness" onchange="renderTable()">
+      <option value="">All</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <span class="filter-label">Governance</span>
+    <select id="filterGovernance" onchange="renderTable()">
+      <option value="">All</option>
+      <option value="Approved">Approved</option>
+      <option value="Pending Review">Pending Review</option>
+      <option value="Unregistered">Unregistered</option>
+      <option value="Exemption Granted">Exemption Granted</option>
+    </select>
+  </div>
+  <div class="filter-group" style="margin-left:auto;">
+    <input type="text" class="search-input" id="searchInput" placeholder="Search projects, owners…" oninput="renderTable()">
+  </div>
+</div>
+
+<!-- Table -->
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th onclick="sortBy('name')">Project <span class="sort-icon">▲</span></th>
+        <th onclick="sortBy('status')">Status <span class="sort-icon">▲</span></th>
+        <th onclick="sortBy('owner')">Owner / Contact <span class="sort-icon">▲</span></th>
+        <th onclick="sortBy('business')">Business Unit <span class="sort-icon">▲</span></th>
+        <th onclick="sortBy('risk')">Risk Level <span class="sort-icon">▲</span></th>
+        <th onclick="sortBy('governance')">Governance <span class="sort-icon">▲</span></th>
+        <th>Description & Use Case</th>
+        <th onclick="sortBy('progress')">Progress <span class="sort-icon">▲</span></th>
+        <th>Tech Stack</th>
+        <th onclick="sortBy('dataClass')">Data Class. <span class="sort-icon">▲</span></th>
+        <th onclick="sortBy('started')">Started <span class="sort-icon">▲</span></th>
+        <th>Review Date</th>
+      </tr>
+    </thead>
+    <tbody id="projectsBody"></tbody>
+  </table>
+</div>
+
+<div class="export-bar">
+  <div class="left" id="rowCount">Showing 0 projects</div>
+  <div class="right">
+    <button class="btn" onclick="window.print()">🖨 Print</button>
+    <button class="btn" onclick="exportCSV()">⬇ CSV</button>
+    <button class="btn" onclick="copyConfluenceMarkup()">📋 Copy Confluence Markup</button>
+  </div>
+</div>
+
+<!-- Add/Edit Modal -->
+
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModalForce()">&times;</button>
+    <h2 id="modalTitle">Register New AI Project</h2>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Project Name *</label>
+        <input type="text" id="fName" placeholder="e.g. Invoice Categoriser Bot">
+      </div>
+      <div class="form-group">
+        <label>Project ID</label>
+        <input type="text" id="fId" placeholder="Auto-generated if blank">
+      </div>
+      <div class="form-group">
+        <label>Owner Name *</label>
+        <input type="text" id="fOwner" placeholder="Full name">
+      </div>
+      <div class="form-group">
+        <label>Owner Email</label>
+        <input type="email" id="fEmail" placeholder="name@bank.com">
+      </div>
+      <div class="form-group">
+        <label>Owner Team / Desk</label>
+        <input type="text" id="fTeam" placeholder="e.g. Credit Risk Analytics">
+      </div>
+      <div class="form-group">
+        <label>Business Unit *</label>
+        <select id="fBusiness">
+          <option>Global Markets</option>
+          <option>Investment Banking</option>
+          <option>Wealth Management</option>
+          <option>Risk & Compliance</option>
+          <option>Operations</option>
+          <option>Technology</option>
+          <option>Finance</option>
+          <option>Legal</option>
+          <option>HR</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Status</label>
+        <select id="fStatus">
+          <option>Discovery</option>
+          <option>Active</option>
+          <option>Pilot</option>
+          <option>On Hold</option>
+          <option>Decommissioned</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Risk Level</label>
+        <select id="fRisk">
+          <option>Low</option>
+          <option>Medium</option>
+          <option>High</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Governance Status</label>
+        <select id="fGovernance">
+          <option>Unregistered</option>
+          <option>Pending Review</option>
+          <option>Approved</option>
+          <option>Exemption Granted</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Data Classification</label>
+        <select id="fDataClass">
+          <option>Public</option>
+          <option>Internal</option>
+          <option>Confidential</option>
+          <option>Restricted</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Progress %</label>
+        <input type="number" id="fProgress" min="0" max="100" value="10">
+      </div>
+      <div class="form-group">
+        <label>Date Started</label>
+        <input type="date" id="fStarted">
+      </div>
+      <div class="form-group">
+        <label>Next Review Date</label>
+        <input type="date" id="fReview">
+      </div>
+      <div class="form-group">
+        <label>Line Manager / Sponsor</label>
+        <input type="text" id="fSponsor" placeholder="e.g. VP, Head of Desk">
+      </div>
+      <div class="form-group full">
+        <label>Description & Use Case *</label>
+        <textarea id="fDesc" placeholder="What does this project do? What problem does it solve? What AI model / tool is being used?"></textarea>
+      </div>
+      <div class="form-group full">
+        <label>Tech Stack / Tools</label>
+        <input type="text" id="fTech" placeholder="e.g. Python, GPT-4, Azure OpenAI, Excel VBA (comma-separated)">
+      </div>
+      <div class="form-group full">
+        <label>Data Sources Accessed</label>
+        <input type="text" id="fDataSources" placeholder="e.g. Bloomberg, Internal CRM, SharePoint (comma-separated)">
+      </div>
+      <div class="form-group full">
+        <label>Key Risks / Dependencies / Notes</label>
+        <textarea id="fNotes" placeholder="Any known risks, vendor dependencies, or management notes"></textarea>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn" onclick="closeModalForce()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveProject()">Save Project</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── Sample Data ───────────────────────────────────────────
+let projects = [
+  {
+    id: "AI-2025-001", name: "FX Sentiment Analyser",
+    owner: "Michael P.", email: "michael.p@bank.com", team: "AI & Finance IT",
+    business: "Global Markets", status: "Active", risk: "Medium",
+    governance: "Pending Review", dataClass: "Confidential",
+    desc: "LSTM-based sentiment model scanning news feeds for FX directional bias. Integrates Forex Factory calendar data with NLP scoring.",
+    tech: ["Python","Keras","LSTM","Pandas","Selenium"],
+    dataSources: "Forex Factory, Reuters RSS, Internal FX Desk",
+    progress: 65, started: "2024-09-15", review: "2026-03-15",
+    sponsor: "Head of Electronic Trading",
+    notes: "Running on local GPU infrastructure. No cloud dependency. Needs formal risk assessment for prod."
+  },
+  {
+    id: "AI-2025-002", name: "CLO Document Classifier",
+    owner: "Sarah T.", email: "sarah.t@bank.com", team: "Structured Finance Ops",
+    business: "Investment Banking", status: "Pilot",  risk: "High",
+    governance: "Approved", dataClass: "Restricted",
+    desc: "Azure OpenAI-powered tool to classify and extract key terms from CLO/ABS/RMBS legal documentation. Reduces manual review time by ~60%.",
+    tech: ["Azure OpenAI","Python","Vector DB","ChromaDB"],
+    dataSources: "DealLogic, Internal Doc Repository, Bloomberg",
+    progress: 40, started: "2025-01-10", review: "2026-04-01",
+    sponsor: "MD, Structured Finance",
+    notes: "PII risk — legal review required before wider rollout. Data stays within Azure tenant."
+  },
+  {
+    id: "AI-2025-003", name: "Meeting Minutes Summariser",
+    owner: "James K.", email: "james.k@bank.com", team: "Change Management",
+    business: "Operations", status: "Active", risk: "Low",
+    governance: "Approved", dataClass: "Internal",
+    desc: "Automated meeting note generator using Whisper + GPT-4. Transcribes Teams calls and produces structured action items.",
+    tech: ["Whisper","GPT-4","Python","MS Teams API"],
+    dataSources: "MS Teams Recordings",
+    progress: 80, started: "2024-11-01", review: "2026-06-01",
+    sponsor: "COO Office",
+    notes: "Well received by stakeholders. Consent workflow implemented for recording."
+  },
+  {
+    id: "AI-2025-004", name: "Compliance Alert Triage",
+    owner: "Priya M.", email: "priya.m@bank.com", team: "Compliance Analytics",
+    business: "Risk & Compliance", status: "Discovery", risk: "High",
+    governance: "Unregistered", dataClass: "Restricted",
+    desc: "NLP model to auto-categorise compliance alerts by severity and route to appropriate reviewers. Aims to reduce false positive burden.",
+    tech: ["Python","scikit-learn","spaCy","Internal API"],
+    dataSources: "Compliance Alert System, Trade Surveillance DB",
+    progress: 15, started: "2025-02-01", review: "2026-03-01",
+    sponsor: "Chief Compliance Officer",
+    notes: "HIGH PRIORITY for governance review. Potential regulatory scrutiny. Must not auto-dismiss alerts."
+  },
+  {
+    id: "AI-2025-005", name: "HR Attrition Predictor",
+    owner: "David L.", email: "david.l@bank.com", team: "People Analytics",
+    business: "HR", status: "On Hold", risk: "Medium",
+    governance: "Pending Review", dataClass: "Confidential",
+    desc: "ML model predicting employee attrition risk using engagement survey data, tenure, and performance metrics.",
+    tech: ["Python","XGBoost","Pandas","Tableau"],
+    dataSources: "Workday, Engagement Survey, Performance DB",
+    progress: 30, started: "2024-07-20", review: "2026-05-01",
+    sponsor: "CHRO",
+    notes: "On hold pending DPIA completion. Ethical concerns around profiling need legal sign-off."
+  },
+  {
+    id: "AI-2025-006", name: "Expense Report Anomaly Detector",
+    owner: "Rachel W.", email: "rachel.w@bank.com", team: "Finance Analytics",
+    business: "Finance", status: "Active", risk: "Low",
+    governance: "Approved", dataClass: "Internal",
+    desc: "Isolation Forest model flagging unusual expense patterns for audit review. Integrated into SAP workflow.",
+    tech: ["Python","scikit-learn","SAP BAPI","Excel"],
+    dataSources: "SAP Concur, GL Extracts",
+    progress: 90, started: "2024-06-01", review: "2026-07-01",
+    sponsor: "CFO Office",
+    notes: "Nearing production handover to central IT. Strong ROI demonstrated."
+  }
+];
+
+let sortField = 'name';
+let sortAsc = true;
+let editingIndex = -1;
+
+// ─── Render KPIs ───────────────────────────────────────────
+function renderKPIs(filtered) {
+  const total = filtered.length;
+  const active = filtered.filter(p => p.status === 'Active' || p.status === 'Pilot').length;
+  const highRisk = filtered.filter(p => p.risk === 'High').length;
+  const unregistered = filtered.filter(p => p.governance === 'Unregistered').length;
+  const avgProgress = total ? Math.round(filtered.reduce((s,p) => s + p.progress, 0) / total) : 0;
+  const businesses = new Set(filtered.map(p => p.business)).size;
+
+  document.getElementById('kpiStrip').innerHTML = `
+    <div class="kpi"><div class="kpi-label">Total Projects</div><div class="kpi-value">${total}</div></div>
+    <div class="kpi"><div class="kpi-label">Active / Pilot</div><div class="kpi-value">${active}</div></div>
+    <div class="kpi"><div class="kpi-label">Avg. Progress</div><div class="kpi-value">${avgProgress}%</div></div>
+    <div class="kpi"><div class="kpi-label">High Risk</div><div class="kpi-value" style="color:var(--red)">${highRisk}</div></div>
+    <div class="kpi"><div class="kpi-label">Unregistered</div><div class="kpi-value" style="color:var(--amber)">${unregistered}</div></div>
+    <div class="kpi"><div class="kpi-label">Business Units</div><div class="kpi-value">${businesses}</div></div>
+  `;
+}
+
+// ─── Populate business filter ──────────────────────────────
+function populateBusinessFilter() {
+  const sel = document.getElementById('filterBusiness');
+  const businesses = [...new Set(projects.map(p => p.business))].sort();
+  sel.innerHTML = '<option value="">All</option>' + businesses.map(b => `<option>${b}</option>`).join('');
+}
+
+// ─── Filter & Sort ─────────────────────────────────────────
+function getFiltered() {
+  const status = document.getElementById('filterStatus').value;
+  const risk = document.getElementById('filterRisk').value;
+  const biz = document.getElementById('filterBusiness').value;
+  const gov = document.getElementById('filterGovernance').value;
+  const q = document.getElementById('searchInput').value.toLowerCase();
+
+  let f = projects.filter(p => {
+    if (status && p.status !== status) return false;
+    if (risk && p.risk !== risk) return false;
+    if (biz && p.business !== biz) return false;
+    if (gov && p.governance !== gov) return false;
+    if (q) {
+      const haystack = [p.name, p.id, p.owner, p.team, p.business, p.desc, p.tech.join(' ')].join(' ').toLowerCase();
+      if (!haystack.includes(q)) return false;
+    }
+    return true;
+  });
+
+  f.sort((a, b) => {
+    let va = a[sortField], vb = b[sortField];
+    if (typeof va === 'string') va = va.toLowerCase();
+    if (typeof vb === 'string') vb = vb.toLowerCase();
+    if (va < vb) return sortAsc ? -1 : 1;
+    if (va > vb) return sortAsc ? 1 : -1;
+    return 0;
+  });
+
+  return f;
+}
+
+function sortBy(field) {
+  if (sortField === field) sortAsc = !sortAsc;
+  else { sortField = field; sortAsc = true; }
+  renderTable();
+}
+
+// ─── Status / Risk badge helpers ───────────────────────────
+function statusBadge(s) {
+  const map = { 'Active':'badge-green','Pilot':'badge-cyan','Discovery':'badge-purple','On Hold':'badge-amber','Decommissioned':'badge-muted' };
+  return `<span class="badge ${map[s]||'badge-muted'}">${s}</span>`;
+}
+function govBadge(g) {
+  const map = { 'Approved':'badge-green','Pending Review':'badge-amber','Unregistered':'badge-red','Exemption Granted':'badge-cyan' };
+  return `<span class="badge ${map[g]||'badge-muted'}">${g}</span>`;
+}
+function riskLabel(r) {
+  const cls = { 'Low':'risk-low','Medium':'risk-medium','High':'risk-high' };
+  return `<span class="risk-dot ${cls[r]}"></span>${r}`;
+}
+function progressColor(p) {
+  if (p >= 75) return 'var(--green)';
+  if (p >= 40) return 'var(--accent)';
+  if (p >= 20) return 'var(--amber)';
+  return 'var(--red)';
+}
+
+// ─── Render Table ──────────────────────────────────────────
+function renderTable() {
+  const filtered = getFiltered();
+  renderKPIs(filtered);
+
+  const tbody = document.getElementById('projectsBody');
+  tbody.innerHTML = filtered.map((p, i) => `
+    <tr ondblclick="editProject(${projects.indexOf(p)})">
+      <td>
+        <div class="project-name">${p.name}</div>
+        <div class="project-id">${p.id}</div>
+        ${p.sponsor ? `<div style="font-size:11px;color:var(--text-dim);margin-top:3px">Sponsor: ${p.sponsor}</div>` : ''}
+      </td>
+      <td>${statusBadge(p.status)}</td>
+      <td>
+        <div class="owner-cell">
+          <span class="owner-name">${p.owner}</span>
+          <span class="owner-team">${p.team}</span>
+          <a class="owner-email" href="mailto:${p.email}">${p.email}</a>
+        </div>
+      </td>
+      <td>${p.business}</td>
+      <td>${riskLabel(p.risk)}</td>
+      <td>${govBadge(p.governance)}</td>
+      <td>
+        <div class="detail-text">${p.desc.substring(0,120)}${p.desc.length > 120 ? '…' : ''}</div>
+        ${p.dataSources ? `<div style="font-size:10px;color:var(--text-dim);margin-top:4px">Data: ${p.dataSources}</div>` : ''}
+      </td>
+      <td>
+        <div class="progress-label" style="color:${progressColor(p.progress)}">${p.progress}%</div>
+        <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${p.progress}%;background:${progressColor(p.progress)}"></div></div>
+      </td>
+      <td>
+        <div class="tag-list">${p.tech.map(t => `<span class="mini-tag">${t}</span>`).join('')}</div>
+      </td>
+      <td><span class="badge ${p.dataClass==='Restricted'?'badge-red':p.dataClass==='Confidential'?'badge-amber':p.dataClass==='Internal'?'badge-muted':'badge-green'}">${p.dataClass}</span></td>
+      <td style="white-space:nowrap;font-size:12px;">${p.started || '—'}</td>
+      <td style="white-space:nowrap;font-size:12px;">${p.review || '—'}</td>
+    </tr>
+  `).join('');
+
+  document.getElementById('rowCount').textContent = `Showing ${filtered.length} of ${projects.length} projects`;
+}
+
+// ─── Modal / Form ──────────────────────────────────────────
+function openModal() {
+  editingIndex = -1;
+  document.getElementById('modalTitle').textContent = 'Register New AI Project';
+  clearForm();
+  document.getElementById('modalOverlay').classList.add('active');
+}
+
+function editProject(idx) {
+  editingIndex = idx;
+  const p = projects[idx];
+  document.getElementById('modalTitle').textContent = 'Edit Project: ' + p.name;
+  document.getElementById('fName').value = p.name;
+  document.getElementById('fId').value = p.id;
+  document.getElementById('fOwner').value = p.owner;
+  document.getElementById('fEmail').value = p.email;
+  document.getElementById('fTeam').value = p.team;
+  document.getElementById('fBusiness').value = p.business;
+  document.getElementById('fStatus').value = p.status;
+  document.getElementById('fRisk').value = p.risk;
+  document.getElementById('fGovernance').value = p.governance;
+  document.getElementById('fDataClass').value = p.dataClass;
+  document.getElementById('fProgress').value = p.progress;
+  document.getElementById('fStarted').value = p.started;
+  document.getElementById('fReview').value = p.review;
+  document.getElementById('fSponsor').value = p.sponsor || '';
+  document.getElementById('fDesc').value = p.desc;
+  document.getElementById('fTech').value = p.tech.join(', ');
+  document.getElementById('fDataSources').value = p.dataSources || '';
+  document.getElementById('fNotes').value = p.notes || '';
+  document.getElementById('modalOverlay').classList.add('active');
+}
+
+function closeModal(e) { if (e.target === e.currentTarget) closeModalForce(); }
+function closeModalForce() { document.getElementById('modalOverlay').classList.remove('active'); }
+
+function clearForm() {
+  ['fName','fId','fOwner','fEmail','fTeam','fSponsor','fDesc','fTech','fDataSources','fNotes'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('fProgress').value = 10;
+  document.getElementById('fStarted').value = '';
+  document.getElementById('fReview').value = '';
+  document.getElementById('fStatus').value = 'Discovery';
+  document.getElementById('fRisk').value = 'Low';
+  document.getElementById('fGovernance').value = 'Unregistered';
+  document.getElementById('fDataClass').value = 'Internal';
+  document.getElementById('fBusiness').value = 'Technology';
+}
+
+function saveProject() {
+  const name = document.getElementById('fName').value.trim();
+  const desc = document.getElementById('fDesc').value.trim();
+  const owner = document.getElementById('fOwner').value.trim();
+  if (!name || !desc || !owner) { alert('Please fill in required fields (*)'); return; }
+
+  const p = {
+    id: document.getElementById('fId').value.trim() || `AI-2025-${String(projects.length + 1).padStart(3,'0')}`,
+    name,
+    owner,
+    email: document.getElementById('fEmail').value.trim(),
+    team: document.getElementById('fTeam').value.trim(),
+    business: document.getElementById('fBusiness').value,
+    status: document.getElementById('fStatus').value,
+    risk: document.getElementById('fRisk').value,
+    governance: document.getElementById('fGovernance').value,
+    dataClass: document.getElementById('fDataClass').value,
+    progress: parseInt(document.getElementById('fProgress').value) || 0,
+    started: document.getElementById('fStarted').value,
+    review: document.getElementById('fReview').value,
+    sponsor: document.getElementById('fSponsor').value.trim(),
+    desc,
+    tech: document.getElementById('fTech').value.split(',').map(s=>s.trim()).filter(Boolean),
+    dataSources: document.getElementById('fDataSources').value.trim(),
+    notes: document.getElementById('fNotes').value.trim()
+  };
+
+  if (editingIndex >= 0) projects[editingIndex] = p;
+  else projects.push(p);
+
+  populateBusinessFilter();
+  renderTable();
+  closeModalForce();
+}
+
+// ─── Export CSV ────────────────────────────────────────────
+function exportCSV() {
+  const headers = ['ID','Name','Status','Owner','Email','Team','Business Unit','Risk','Governance','Data Classification','Progress %','Started','Review Date','Sponsor','Description','Tech Stack','Data Sources','Notes'];
+  const rows = getFiltered().map(p => [
+    p.id, p.name, p.status, p.owner, p.email, p.team, p.business, p.risk, p.governance, p.dataClass,
+    p.progress, p.started, p.review, p.sponsor, `"${p.desc.replace(/"/g,'""')}"`,
+    p.tech.join('; '), p.dataSources, `"${(p.notes||'').replace(/"/g,'""')}"`
+  ]);
+  const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = 'ai-side-of-desk-projects.csv'; a.click();
+}
+
+// ─── Confluence Wiki Markup ────────────────────────────────
+function copyConfluenceMarkup() {
+  const filtered = getFiltered();
+  let wiki = `h1. AI Side-of-Desk Projects Registry\n\n`;
+  wiki += `|| ID || Project || Status || Owner || Team || Business || Risk || Governance || Data Class. || Progress || Started || Review ||\n`;
+  filtered.forEach(p => {
+    wiki += `| ${p.id} | ${p.name} | ${p.status} | ${p.owner} | ${p.team} | ${p.business} | ${p.risk} | ${p.governance} | ${p.dataClass} | ${p.progress}% | ${p.started||'—'} | ${p.review||'—'} |\n`;
+  });
+  navigator.clipboard.writeText(wiki).then(() => alert('Confluence wiki markup copied to clipboard!')).catch(() => {
+    const ta = document.createElement('textarea'); ta.value = wiki; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove();
+    alert('Confluence wiki markup copied to clipboard!');
+  });
+}
+
+// ─── Init ──────────────────────────────────────────────────
+populateBusinessFilter();
+renderTable();
+</script>
+
+</body>
+</html>
